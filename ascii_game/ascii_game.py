@@ -28,14 +28,14 @@ class GameObject():
         game = self.game
         grid = game.grid
         grid[row_cur][col_cur] = " "
-        if direction == "w":  # NORTH
-            row_cur = max([row_cur - 1, 0])
-        elif direction == "s":  # SOUTH
-            row_cur = min([row_cur + 1, game.height - 1])
-        elif direction == "a":  # WEST
-            col_cur = max([col_cur - 1, 0])
-        elif direction == "d":  # EAST
-            col_cur = min([col_cur + 1, game.width - 1])
+        if direction == "w" and row_cur > 0:  # NORTH
+            row_cur -= 1
+        elif direction == "s" and row_cur < game.num_rows - 1:  # SOUTH
+            row_cur += 1
+        elif direction == "a" and col_cur > 0:  # WEST
+            col_cur -= 1
+        elif direction == "d" and col_cur < game.num_cols - 1:  # EAST
+            col_cur += 1
         self.row = row_cur
         self.col = col_cur
         if grid[row_cur][col_cur] == " " or self.handle_collision(grid[row_cur][col_cur]):
@@ -64,12 +64,11 @@ class Enemy(GameObject):
         super().__init__(name, row, col, game)
         self.type = "ENEMY"
         self.speed = speed
-        self.frame_to_act = int(60 / self.speed)
+        self.frame_to_act = 0
     def act(self, frame):
         if frame >= self.frame_to_act:
             self.do_action()
             self.frame_to_act += int(3600 / self.speed)
-            print(int(3600 / self.speed))
     def do_action(self):
         print("ACTING")
         self.move(random.choice(["w","a","s","d"]))
@@ -82,11 +81,11 @@ class Enemy(GameObject):
 class Game:
     def __init__(self):
         # Init grid
-        self.height = 10
-        self.width = 12
+        self.num_rows = 10
+        self.num_cols = 12
         self.grid = []
-        for i in range(self.height):
-            self.grid.append([" "] * self.width)
+        for i in range(self.num_rows):
+            self.grid.append([" "] * self.num_cols)
 
         self.frame = 0
         self.running = True
@@ -95,7 +94,7 @@ class Game:
         self.grid[0][0] = self.player
 
         self.enemies = []
-        self.enemies.append(Enemy("X", 5, 0, 60, self))
+        self.enemies.append(Enemy("X", 5, 0, 3000, self))
         self.grid[5][0] = self.enemies[0]
 
     def draw_grid(self):
