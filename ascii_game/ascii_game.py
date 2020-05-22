@@ -1,4 +1,4 @@
-import kbhit
+import kbhit # https://simondlevy.academic.wlu.edu/files/software/kbhit.py
 
 import os
 import sys
@@ -32,20 +32,23 @@ class GameObject():
         grid = game.grid
         grid[row][col] = " "
         if direction in ["w", "a", "s", "d"]:
-            if direction == "w":  # NORTH
-                row = (row - 1) % self.game.num_rows
-            elif direction == "s":  # SOUTH
-                row = (row + 1) % self.game.num_rows
-            elif direction == "a":  # WEST
-                col = (col - 1) % self.game.num_cols
-            elif direction == "d":  # EAST
-                col = (col + 1) % self.game.num_cols
-        if grid[row][col] == " " or self.handle_collision(grid[row][col]):
+            if direction == "w" and row > 0:  # NORTH
+                row -= 1
+            elif direction == "s" and row < self.game.num_rows - 1:  # SOUTH
+                row += 1
+            elif direction == "a" and col > 0:  # WEST
+                col -= 1
+            elif direction == "d" and col < self.game.num_cols - 1:  # EAST
+                col += 1
+        # If the collision is valid (True), update position
+        if self.handle_collision(grid[row][col]):
             self.row = row
             self.col = col
         grid[self.row][self.col] = self
         game.draw_grid()
     def handle_collision(self, collision_object):
+        if collision_object == " ":
+            return True
         return False
     def die(self):
         pass
@@ -62,6 +65,8 @@ class Player(GameObject):
         super().__init__(name, row, col, game)
         self.type = "PLAYER"
     def handle_collision(self, collision_object):
+        if collision_object == " ":
+            return True
         self.die()
         return False
     def die(self):
@@ -72,6 +77,7 @@ class Player(GameObject):
 class Enemy(GameObject):
     def __init__(self, name, row, col, speed, game):
         super().__init__(name, row, col, game)
+        self.game.enemies.append(self)
         self.type = "ENEMY"
         self.speed = speed
         self.frame_to_act = int(3600 / self.speed)
@@ -82,6 +88,8 @@ class Enemy(GameObject):
     def do_action(self):
         self.move(random.choice(["w","a","s","d"]))
     def handle_collision(self, collision_object):
+        if collision_object == " ":
+            return True
         if collision_object.type == "PLAYER":
             collision_object.die()
             return True
@@ -110,9 +118,9 @@ class Game:
         self.grid[0][0] = self.player
 
         self.enemies = []
-        self.enemies.append(Enemy("X", 5, 0, 200, self))
-        self.enemies.append(Enemy("Y", 6, 0, 200, self))
-        self.enemies.append(Enemy("Z", 7, 0, 200, self))
+        Enemy("X", 5, 0, 200, self)
+        Enemy("Y", 6, 0, 200, self)
+        Enemy("Z", 7, 0, 200, self)
 
     def draw_grid(self):
         clear_screen()
