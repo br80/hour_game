@@ -3,6 +3,7 @@ import kbhit
 import os
 import sys
 import time
+import random
 
 def clear_screen():
     '''
@@ -21,6 +22,25 @@ class GameObject():
         self.game = game
     def __str__(self):
         return self.name[0]
+    def move(self, direction):
+        row_cur = self.row
+        col_cur = self.col
+        game = self.game
+        grid = game.grid
+        grid[row_cur][col_cur] = " "
+        if direction == "w":  # NORTH
+            row_cur = max([row_cur - 1, 0])
+        elif direction == "s":  # SOUTH
+            row_cur = min([row_cur + 1, game.height - 1])
+        elif direction == "a":  # WEST
+            col_cur = max([col_cur - 1, 0])
+        elif direction == "d":  # EAST
+            col_cur = min([col_cur + 1, game.width - 1])
+        self.row = row_cur
+        self.col = col_cur
+        if grid[row_cur][col_cur] == " " or self.handle_collision(grid[row_cur][col_cur]):
+            grid[row_cur][col_cur] = self
+        game.draw_grid()
     def handle_collision(self, collision_object):
         pass
     def die(self):
@@ -40,9 +60,24 @@ class Player(GameObject):
 
 
 class Enemy(GameObject):
-    def __init__(self, name, row, col, game):
+    def __init__(self, name, row, col, speed, game):
         super().__init__(name, row, col, game)
         self.type = "ENEMY"
+        self.speed = speed
+        self.frame_to_act = int(60 / self.speed)
+    def act(self, frame):
+        if frame >= self.frame_to_act:
+            self.do_action()
+            self.frame_to_act += int(3600 / self.speed)
+            print(int(3600 / self.speed))
+    def do_action(self):
+        print("ACTING")
+        self.move(random.choice(["w","a","s","d"]))
+    def handle_collision(self, collision_object):
+        if collision_object.type == "PLAYER":
+            collision_object.die()
+        return True
+
 
 class Game:
     def __init__(self):
@@ -60,7 +95,7 @@ class Game:
         self.grid[0][0] = self.player
 
         self.enemies = []
-        self.enemies.append(Enemy("X", 5, 0, self))
+        self.enemies.append(Enemy("X", 5, 0, 60, self))
         self.grid[5][0] = self.enemies[0]
 
     def draw_grid(self):
@@ -69,27 +104,6 @@ class Game:
             char_row = [str(c)[0] for c in row]
             print(" _ ".join(char_row))
 
-    def move_player(self, direction):
-        row_cur = self.player.row
-        col_cur = self.player.col
-        self.grid[row_cur][col_cur] = " "
-        # print(f"{row_cur} - {col_cur}")
-        if direction == "w":  # NORTH
-            row_cur = max([row_cur - 1, 0])
-        elif direction == "s":  # SOUTH
-            row_cur = min([row_cur + 1, len(self.grid) - 1])
-        elif direction == "a":  # WEST
-            col_cur = max([col_cur - 1, 0])
-        elif direction == "d":  # EAST
-            col_cur = min([col_cur + 1, len(self.grid[0]) - 1])
-        self.player.row = row_cur
-        self.player.col = col_cur
-        # print(f"{row_cur} - {col_cur}")
-        if self.grid[row_cur][col_cur] != " ":
-            self.player.handle_collision(self.grid[row_cur][col_cur])
-        else:
-            self.grid[row_cur][col_cur] = self.player
-        self.draw_grid()
 
     def run(self):
         frame = 0
@@ -113,11 +127,12 @@ class Game:
             if kb.kbhit():
                 c = kb.getch()
                 if c in movement_keys:
-                    self.move_player(c)
-                print(ord(c))
+                    self.player.move(c)
 
                 if ord(c) == 27: # ESC
                     break
+            for enemy in self.enemies:
+                enemy.act(self.frame)
             wait_time = max([0, frame_time - (time.time() - start_time)])
             time.sleep(frame_time)
 
