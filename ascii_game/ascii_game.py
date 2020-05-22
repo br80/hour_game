@@ -49,9 +49,26 @@ class GameObject():
     def handle_collision(self, collision_object):
         if collision_object == " ":
             return True
+        return self.object_collision(collision_object)
+
+    def object_collision(self, collision_object):
+        """
+        Default, do nothing
+        """
         return False
+
     def die(self):
+        """
+        Default, do nothing
+        """
         pass
+
+
+
+class Barrier(GameObject):
+    def __init__(self, row, col, game):
+        super().__init__("0", row, col, game)
+        self.type = "BARRIER"
 
 
 class Weapon(GameObject):
@@ -64,9 +81,8 @@ class Player(GameObject):
     def __init__(self, name, row, col, game):
         super().__init__(name, row, col, game)
         self.type = "PLAYER"
-    def handle_collision(self, collision_object):
-        if collision_object == " ":
-            return True
+        self.game.grid[row][col] = self
+    def object_collision(self, collision_object):
         self.die()
         return False
     def die(self):
@@ -81,20 +97,21 @@ class Enemy(GameObject):
         self.type = "ENEMY"
         self.speed = speed
         self.frame_to_act = int(3600 / self.speed)
+        self.game.grid[row][col] = self
     def act(self, frame):
         if frame >= self.frame_to_act:
             self.do_action()
             self.frame_to_act += int(3600 / self.speed)
     def do_action(self):
+        self.random_move()
+    def random_move(self):
         self.move(random.choice(["w","a","s","d"]))
-    def handle_collision(self, collision_object):
-        if collision_object == " ":
-            return True
+    def object_collision(self, collision_object):
         if collision_object.type == "PLAYER":
             collision_object.die()
             return True
         elif collision_object.type == "ENEMY":
-            return False
+            return True
         else:
             self.die()
             return False
@@ -103,10 +120,10 @@ class Enemy(GameObject):
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, num_rows, num_cols):
         # Init grid
-        self.num_rows = 20
-        self.num_cols = 2
+        self.num_rows = num_rows
+        self.num_cols = num_cols
         self.grid = []
         for i in range(self.num_rows):
             self.grid.append([" "] * self.num_cols)
@@ -115,12 +132,13 @@ class Game:
         self.running = True
 
         self.player = Player("Br80", 0, 0, self)
-        self.grid[0][0] = self.player
 
         self.enemies = []
         Enemy("X", 5, 0, 200, self)
+        Enemy("X", 5, 1, 200, self)
         Enemy("Y", 6, 0, 200, self)
-        Enemy("Z", 7, 0, 200, self)
+        Enemy("Y", 6, 1, 200, self)
+        Enemy("X", 7, 0, 200, self)
 
     def draw_grid(self):
         clear_screen()
@@ -162,7 +180,7 @@ class Game:
         kb.set_normal_term()
 
 
-g = Game()
+g = Game(20, 20)
 g.draw_grid()
 g.run()
 
