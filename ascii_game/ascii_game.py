@@ -74,7 +74,7 @@ class GameObject():
 
 class Barrier(GameObject):
     def __init__(self, row, col, game):
-        super().__init__("0", row, col, game)
+        super().__init__("#", row, col, game)
         self.type = "BARRIER"
 
 
@@ -208,6 +208,17 @@ class Game:
         Enemy("Y", 6, 0, 400, self)
         Enemy("Y", 6, 1, 400, self)
         Enemy("X", 7, 0, 400, self)
+
+
+        Barrier(4, 2, self)
+        Barrier(5, 2, self)
+        Barrier(6, 2, self)
+        Barrier(7, 2, self)
+        Barrier(8, 2, self)
+        Barrier(9, 2, self)
+
+
+        Barrier(0, 3, self)
 
 
     def draw_grid(self):
