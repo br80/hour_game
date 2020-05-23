@@ -103,7 +103,7 @@ class Player(GameObject):
         super().__init__(name, row, col, game)
         self.type = "PLAYER"
         self.game.grid[row][col] = self
-        self.attack_speed = int(self.game.framerate / 1)  # 1/1 second
+        self.attack_speed = int(self.game.framerate / 4)  # 1/2 second
         self.cooldown = 0
     def process_command(self, c):
         if c in ["w", "a", "s", "d"]:
@@ -118,7 +118,7 @@ class Player(GameObject):
         self.game.running = False
     def attack(self):
         w = Weapon("+", self.row, self.col+1, self.attack_speed, self.game)
-        self.cooldown = self.attack_speed
+        self.cooldown = self.attack_speed+1  # One frame longer than weapon
 
 
 class Enemy(GameObject):
@@ -181,9 +181,11 @@ class Game:
 
     def draw_grid(self):
         clear_screen()
+        print("#" * (self.num_cols + 2))
         for row in self.grid:
             char_row = [str(c)[0] for c in row]
-            print(" _ ".join(char_row))
+            print(f"#{''.join(char_row)}#")
+        print("#" * (self.num_cols + 2))
         print(self.player.cooldown)
 
 
