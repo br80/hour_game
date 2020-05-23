@@ -165,7 +165,7 @@ class Enemy(GameObject):
     def random_move(self):
         move_choices = ["north", "south", "west", "east"]
         # Try again if the move is unsuccessful
-        tries = 5
+        tries = 10
         while tries > 0 and not self.move(random.choice(move_choices)):
             tries -= 1
         self.frame_to_act += self.speed
